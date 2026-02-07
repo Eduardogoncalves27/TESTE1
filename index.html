@@ -14,9 +14,8 @@ body {
   color: #444;
   text-align: center;
   padding: 20px;
-  overflow-x: hidden;
 }
-.container { max-width: 480px; margin: auto; position: relative; }
+.container { max-width: 480px; margin: auto; }
 h1 { color: #6a4bc3; }
 p { font-size: 16px; line-height: 1.5; }
 .hidden { display: none; }
@@ -34,7 +33,7 @@ button {
 .start { background: #6a4bc3; color: #fff; }
 .send { background: #2e7d32; color: #fff; }
 .retry { background: #e0e0e0; }
-.success { margin-top: 30px; font-size: 20px; color: #2e7d32; position: relative; z-index: 2; }
+.success { margin-top: 30px; font-size: 20px; color: #2e7d32; }
 .progress-bar {
   width: 100%;
   height: 16px;
@@ -53,17 +52,6 @@ button {
   transition: width 0.5s ease-in-out;
 }
 .honeypot { display: none; }
-
-/* Canvas do confete 3D colorido */
-#confetti-canvas {
-  position: fixed;
-  pointer-events: none;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
 </style>
 </head>
 
@@ -71,7 +59,7 @@ button {
 <div class="container">
 
 <div id="welcome">
-  <h1>💍 Eduardo & Amanda</h1>
+  <h1>Eduardo & Amanda</h1>
   <p>
     Obrigado por celebrar conosco ❤️<br>
     Clique no botão abaixo para tirar sua foto ou gravar seu vídeo!
@@ -119,10 +107,9 @@ button {
 <div id="success" class="success hidden">
   ✅ <strong>SALVO E ENVIADO!</strong><br><br>
   Muito obrigado por compartilhar esse momento especial 💖<br>
-  Sua foto já pode aparecer na TV!
+  Sua foto ou video vai aparecer na TV!
 </div>
 
-<canvas id="confetti-canvas"></canvas>
 </div>
 
 <script>
@@ -152,7 +139,7 @@ function abrirCamera(facingMode) {
 // Arquivo selecionado
 file.onchange = () => {
   const f = file.files[0];
-  if (!f) return; // cancelou
+  if (!f) return;
 
   cameraChoice.classList.add("hidden");
   form.classList.remove("hidden");
@@ -193,82 +180,7 @@ function resetar() {
   progress.style.width = "0%";
 }
 
-// Confete 3D colorido com fade-out
-function startConfetti3D(duration = 4000, fadeDuration = 1000) {
-  const canvas = document.getElementById("confetti-canvas");
-  const ctx = canvas.getContext("2d");
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-
-  const colors = ["#6a4bc3","#9b6ef2","#ff5252","#ffb74d","#4caf50","#00bcd4","#ffc107","#e91e63"];
-  const confettis = [];
-  for (let i = 0; i < 200; i++) {
-    confettis.push({
-      x: Math.random()*canvas.width,
-      y: Math.random()*canvas.height - canvas.height,
-      z: Math.random()*20 + 5,
-      size: Math.random()*8 + 4,
-      color: colors[Math.floor(Math.random()*colors.length)],
-      tilt: Math.random()*20,
-      tiltAngle: Math.random()*2*Math.PI,
-      tiltSpeed: Math.random()*0.1 + 0.05,
-      speedY: Math.random()*3 + 2,
-      speedX: Math.random()*2 - 1,
-      rotation: Math.random()*2*Math.PI,
-      rotationSpeed: Math.random()*0.2 - 0.1,
-      alpha: Math.random()*0.5 + 0.5
-    });
-  }
-
-  const startTime = Date.now();
-  let fading = false;
-
-  function draw() {
-    const elapsed = Date.now() - startTime;
-
-    if (elapsed > duration) fading = true; // começa fade-out
-
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    confettis.forEach(c=>{
-      const perspective = 500/(500+c.z);
-      ctx.save();
-      ctx.translate(c.x, c.y);
-      ctx.rotate(c.tiltAngle);
-      ctx.rotate(c.rotation);
-      ctx.globalAlpha = fading ? Math.max(0, c.alpha * (1 - (elapsed - duration)/fadeDuration)) : c.alpha;
-      ctx.fillStyle = c.color;
-      ctx.fillRect(-c.size/2*perspective, -c.size/4*perspective, c.size*perspective, c.size/2*perspective);
-      ctx.restore();
-    });
-
-    update();
-    if (!fading || elapsed - duration < fadeDuration) {
-      requestAnimationFrame(draw);
-    } else {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-    }
-  }
-
-  function update() {
-    confettis.forEach(c=>{
-      c.tiltAngle += c.tiltSpeed;
-      c.rotation += c.rotationSpeed;
-      c.y += c.speedY;
-      c.x += c.speedX;
-      c.z -= 0.05;
-      if(c.y>canvas.height || c.x<0 || c.x>canvas.width || c.z<0){
-        c.x = Math.random()*canvas.width;
-        c.y = -10;
-        c.z = Math.random()*20 + 5;
-        c.alpha = Math.random()*0.5+0.5;
-      }
-    });
-  }
-
-  draw();
-}
-
-// Envio com progresso e confete 3D com fade
+// Envio com progresso
 form.onsubmit = (e) => {
   e.preventDefault();
   if (form.querySelector('input[name="_honey"]').value) return;
@@ -291,10 +203,7 @@ form.onsubmit = (e) => {
       form.classList.add("hidden");
       success.classList.remove("hidden");
 
-      // Confete 3D colorido com fade-out
-      startConfetti3D();
-
-      // Reset após 5s para dar tempo do fade-out terminar
+      // Reset após 5s
       setTimeout(() => {
         resetar();
         window.scrollTo({ top: 0, behavior: "smooth" });
